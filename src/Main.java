@@ -30,7 +30,7 @@ public class Main {
 		for (int i = 0; i < equation.length();i++){
 			if (equation.charAt(i)>='a' && equation.charAt(i)<='z') {
 				boolean alreadyExists = false;
-				EquationVariables temp = new EquationVariables(equation.charAt(i),1, counter);
+				EquationVariables temp = new EquationVariables(equation.charAt(i),true, counter);
 				
 				//checks for duplicate letters and doesn't add them to the array twice
 				for (EquationVariables v : variableArray){

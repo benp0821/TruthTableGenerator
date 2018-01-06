@@ -1,7 +1,7 @@
 
 public class EquationVariables {
 	
-	private int state;
+	private boolean state;
 	private char name;
 	private int sigBit;
 	
@@ -11,14 +11,14 @@ public class EquationVariables {
 	 * @param theState the current binary state of the variable
 	 * @param significantBit helps with constructing the truth table in the TruthTableGUI class
 	 */
-	public EquationVariables(char theName, int theState, int significantBit){
+	public EquationVariables(char theName, boolean theState, int significantBit){
 		name = theName;
 		state = theState;
 		sigBit = significantBit;
 	}
 	
 	/** Returns the binary state */
-	public int getState(){
+	public boolean getState(){
 		return state;
 	}
 	
@@ -36,11 +36,7 @@ public class EquationVariables {
 	 * If state = 1, set state = 0
 	 */
 	public void setState(){
-		if (state == 1){
-			state = 0;
-		}else{
-			state = 1;
-		}
+		state = !state;
 		
 	}
 	

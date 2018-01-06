@@ -4,6 +4,7 @@ import java.util.ArrayList;
 public class TruthTableGUI {
 	ArrayList<EquationVariables> variables = new ArrayList<>();
 	ArrayList<Object> equation;
+	ArrayList<Object> temp;
 	
 	public TruthTableGUI(ArrayList<EquationVariables> vars, ArrayList<Object> theEquation){
 		variables = vars;
@@ -36,7 +37,7 @@ public class TruthTableGUI {
 				if (variables.get(m).getSigBit() == 1){
 					variables.get(m).setState();
 				}
-				System.out.print(" | " + variables.get(m).getState());
+				System.out.print(" | " + (variables.get(m).getState() ? 1 : 0));
 			}
 			System.out.print(" || ");
 			//attempts to parse the equation for the current variable states.
@@ -47,116 +48,64 @@ public class TruthTableGUI {
 		}
 	}
 	
+	public void invertVal(int pos){
+		if ((Integer)temp.get(pos)==0){
+			temp.set(pos, 1);
+		}else{
+			temp.set(pos, 0);
+		}
+	}
+	
+	public void orValues(int leftPos, int rightPos){
+		if ((Integer)temp.get(leftPos) == 1 || (Integer) temp.get(rightPos) == 1){
+			temp.set(rightPos, 1);
+		}else{
+			temp.set(rightPos, 0);
+		}
+	}
+	
+	public void andValues(int leftPos, int rightPos){
+		if ((Integer) temp.get(leftPos) == 1 && ((Integer) temp.get(rightPos)) == 1){
+			temp.set(rightPos, 1);
+		}else{
+			temp.set(rightPos, 0);
+		}
+	}
+	
+	public boolean isInt(int pos){
+		return temp.get(pos).getClass().equals(Integer.class);
+	}
+	
 	/**
 	 * Goes through the equation and performs the calculations.
 	 * @return true if the equation is properly formatted, false otherwise
 	 */
 	public boolean parseEquation(){
-		//Creates a temporary array in which the EquationVariables are replaced with the
-		//Integer representing their state, for cleaner code
-		ArrayList<Object> temp = new ArrayList<>(equation);
+		temp = new ArrayList<>(equation);
 		for (int j = 0; j < temp.size();j++){
 			if (temp.get(j).getClass().equals(EquationVariables.class)){
-				temp.set(j, ((EquationVariables)temp.get(j)).getState());
+				temp.set(j, ((EquationVariables)temp.get(j)).getState() ? 1 : 0);
 			}
 		}
 		for (int i = 0; i < temp.size(); i++){
-			//if the current index in the equation is a Character
 			if (temp.get(i).getClass().equals(Character.class)){
-				//if the object at position i in the equation is equal to +
-				if (temp.get(i).equals('+')){
-					//makes sure the plus isn't at the beginning or end of the string
-					if (!(i == 0) && !(i == temp.size()-1)){
-						//makes sure the objects surrounding the plus are integers
-						if (temp.get(i-1).getClass().equals(Integer.class)){
-							if (temp.get(i+1).getClass().equals(Integer.class)){
-								//OR the values to determine whether the answer should be 0 or 1
-								if ((Integer)temp.get(i-1) == 1 || (Integer) temp.get(i+1) == 1){
-									temp.set(i+1, 1);
-								}else{
-									temp.set(i+1, 0);
-								}
-							//if the object following the plus is a ! instead of an integer
-							//The value after the ! is inverted and then the + is applied
-							}else if (temp.get(i+1).equals('!')){
-								if (temp.get(i+2).getClass().equals(Integer.class)){
-									if ((Integer)temp.get(i+2)==0){
-										temp.set(i+2, 1);
-									}else{
-										temp.set(i+2, 0);
-									}
-									if ((Integer)temp.get(i-1) == 1 || (Integer) temp.get(i+2) == 1){
-										temp.set(i+2, 1);
-										temp.set(i+1, "");
-									}else{
-										temp.set(i+2, 0);
-										temp.set(i+1, "");
-									}
-								//Ends the method if anything is wrong with the equation
-								}else{
-									return fail();
-								}
-							}else{
-								return fail();
-							}
-						}else {
-							return fail();
+				if (temp.get(i).equals('!') && isInt(i+1)){
+					invertVal(i+1);
+				}else if ((!(i == 0) && !(i == temp.size()-1)) && isInt(i-1)){
+					if (isInt(i+1)){
+						if (temp.get(i).equals('+')){
+							orValues(i-1, i+1);
+						}else if (temp.get(i).equals('*')){
+							andValues(i-1, i+1);
 						}
-					}else{
-						return fail();
-					}
-				}
-				//if the object at position i in the equation is equal to *
-				else if (temp.get(i).equals('*')){
-					//makes sure the asterisk isn't at the beginning or end of the string
-					if (!(i == 0) && !(i == temp.size()-1)){
-						//makes sure the objects surrounding the asterisk are integers
-						if (temp.get(i-1).getClass().equals(Integer.class)){
-							if (temp.get(i+1).getClass().equals(Integer.class)){
-								//AND the values to determine whether the answer should be 0 or 1
-								if ((Integer) temp.get(i-1) == 1 && ((Integer) temp.get(i+1)) == 1){
-									temp.set(i+1, 1);
-								}else{
-									temp.set(i+1, 0);
-								}
-							//if the object following the * is a ! instead of an integer
-							//The value after the ! is inverted and then the * is applied
-							}else if (temp.get(i+1).equals('!')){
-								if (temp.get(i+2).getClass().equals(Integer.class)){
-									if ((Integer)temp.get(i+2)==0){
-										temp.set(i+2, 1);
-									}else{
-										temp.set(i+2, 0);
-									}
-									if ((Integer)temp.get(i-1) == 1 && (Integer) temp.get(i+2) == 1){
-										temp.set(i+2, 1);
-										temp.set(i+1, "");
-									}else{
-										temp.set(i+2, 0);
-										temp.set(i+1, "");
-									}
-								//Ends the method if anything is wrong with the equation
-								}else{
-									return fail();
-								}
-							}else{
-								return fail();
-							}
-						}else {
-							return fail();
+					}else if (temp.get(i+1).equals('!') && isInt(i+2)){
+						invertVal(i+2);
+						if (temp.get(i).equals('+')){
+							orValues(i-1, i+2);
+						}else if (temp.get(i).equals('*')){
+							andValues(i-1, i+2);
 						}
-					}else{
-						return fail();
-					}
-				//if the current index is an ! (such as when it is the first character)
-				//The value after the ! is inverted
-				}else if (temp.get(i).equals('!')){
-					if (temp.get(i+1).getClass().equals(Integer.class)){
-						if ((Integer)temp.get(i+1)==0){
-							temp.set(i+1, 1);
-						}else{
-							temp.set(i+1, 0);
-						}
+						temp.set(i+1, "");
 					}else{
 						return fail();
 					}
@@ -164,10 +113,8 @@ public class TruthTableGUI {
 					return fail();
 				}
 			//If two integers are next to each other, end the program for an improper equation
-			}else if (temp.get(i).getClass().equals(Integer.class) && i < temp.size()-1){
-				if (temp.get(i+1).getClass().equals(Integer.class)){
-					return fail();
-				}
+			}else if (isInt(i) && i < temp.size()-1 && isInt(i+1)){
+				return fail();
 			}
 		}
 		//prints out the solution in the last column of the truth table
